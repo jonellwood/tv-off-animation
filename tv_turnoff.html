@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TV Turn Off with Real Static</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .power-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(255, 71, 87, 0.4);
+            transition: all 0.3s ease;
+            z-index: 10003;
+        }
+
+        .power-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.6);
+        }
+
+        .power-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        canvas.static-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10001;
+            opacity: 0;
+            pointer-events: none;
+            clip-path: inset(0% 0% 0% 0%);
+        }
+
+        canvas.static-canvas.active {
+            opacity: 1;
+        }
+
+        canvas.static-canvas.shrinking {
+            animation: shrinkToCenter 2s ease-in-out forwards;
+        }
+
+        @keyframes shrinkToCenter {
+            0% {
+                clip-path: inset(0% 0% 0% 0%);
+            }
+
+            100% {
+                clip-path: inset(50% 50% 50% 50%);
+                opacity: 0;
+            }
+        }
+
+        .center-dot {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            z-index: 10002;
+        }
+
+        .center-dot.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            transition: all 0.3s ease-out;
+        }
+
+        .center-dot.fade {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            transition: all 0.2s ease-in;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="power-button" onclick="turnOffTV()">⏻ Power</button>
+    <canvas class="static-canvas"></canvas>
+    <div class="center-dot"></div>
+
+    <script>
+        const canvas = document.querySelector(".static-canvas");
+        const c = canvas.getContext("2d");
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+
+        const imageData = c.createImageData(canvas.width, canvas.height);
+        let staticRunning = false;
+
+        function drawStatic() {
+            if (!staticRunning) return;
+            for (let i = 0; i < imageData.data.length; i++) {
+                imageData.data[i] = (Math.random() * 255) | 0;
+            }
+            c.putImageData(imageData, 0, 0);
+            requestAnimationFrame(drawStatic);
+        }
+
+        function turnOffTV() {
+            const centerDot = document.querySelector(".center-dot");
+            const powerButton = document.querySelector(".power-button");
+
+            powerButton.disabled = true;
+
+            // Phase 1: Show canvas and start static
+            setTimeout(() => {
+                canvas.classList.add("active");
+                staticRunning = true;
+                drawStatic();
+            }, 100);
+
+            // Phase 2: Start shrinking static
+            setTimeout(() => {
+                canvas.classList.add("shrinking");
+                staticRunning = false; // Will stop on next frame
+            }, 1000);
+
+            // Phase 3: Show center dot
+            setTimeout(() => {
+                centerDot.classList.add("show");
+            }, 3200);
+
+            // Phase 4: Hide center dot
+            setTimeout(() => {
+                centerDot.classList.remove("show");
+                centerDot.classList.add("fade");
+            }, 3600);
+
+            // Phase 5: Redirect
+            // Set this redirect to desired URL if using as a a signout effect which is what I made this for.
+            setTimeout(() => {
+                // window.location.href = "https://jonellwood.dev";
+                alert("Thats some cool stuff isn't it? 😀");
+            }, 4000);
+        }
+    </script>
+</body>
+
+</html>
